@@ -3,6 +3,9 @@ uuid = "c650404e-e56b-4512-a255-8b4a755875f5"
 authors = ["Jason Christopherson <jchristopherson@hotmail.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
+
 [compat]
 julia = "1"
 
