@@ -74,7 +74,11 @@ function friction(
     sol = solve(prob)   # z = sol.u
     v = vel.(sol.t)
     N = nrm.(sol.t)
-    dzdt = lugrevelocity.(mdl, N, v, sol.u)
-    F = lugrefriction.(mdl, v, sol.u, dzdt)
+    dzdt = zeros(T, length(v))
+    F = zeros(T, length(v))
+    for i in 1:length(v)
+        dzdt[i] = lugrevelocity(mdl, N[i], v[i], sol.u[i])
+        F[i] = lugrefriction(mdl, v[i], sol.u[i], dzdt[i])
+    end
     return (force = F, t = t, z = sol.u, dzdt = dzdt)
 end
