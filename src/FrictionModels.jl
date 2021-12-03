@@ -9,5 +9,6 @@ export friction
 
 include("FrictionTypes.jl")
 include("CoulombModels.jl")
+include("LuGreModels.jl")
 
 end

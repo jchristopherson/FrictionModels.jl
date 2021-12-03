@@ -10,7 +10,7 @@ function lugrevelocity(
     Fc = mdl.coulomb_coefficient * nrm
     Fs = mdl.static_coefficient * nrm
     g = Fc + (Fs - Fc) * exp(-(vel / mdl.stribeck_velocity)^2)
-    dzdt = v - mdl.bristle_stiffness * abs(vel) * z / g
+    dzdt = vel - mdl.bristle_stiffness * abs(vel) * z / g
     return dzdt
 end
 
@@ -22,18 +22,59 @@ function lugrefriction(
     z::Number,
     dzdt::Number
 )
-    c = mdl.bristle_damping * exp(-(v / mdl.stribeck_velocity)^2)
+    c = mdl.bristle_damping * exp(-(vel / mdl.stribeck_velocity)^2)
     F = mdl.bristle_stiffness * z + c * dzdt + mdl.viscous_damping * vel
     return F
 end
 
+"""
+Applies the Lu-Gre model to compute the friction force at the defined state.
+The parameters argument 'p' is meant to accept the current bristle deformation;
+however, if this parameter is not specified, a value of 0 will be utilized.
+"""
 function friction(
     mdl::LuGreModel,
     nrm::Number,
     vel::Float64,
-    z::Number = 0.0
+    p::Number...
 )
+    if isempty(p)
+        z = zero(typeof(nrm))
+    else
+        z = p[1]
+    end
     dzdt = lugrevelocity(mdl, nrm, vel, z)
     F = lugrefriction(mdl, vel, z, dzdt)
-    return (force = F, bristle_velocity = dzdt)
+    return (force = F, params = (dzdt))
+end
+
+"""
+"""
+function friction(
+    mdl::LuGreModel,
+    t::Array{T},
+    vel,
+    nrm,
+    p::T...
+) where T <: Number
+    # Solve the differential equation describing bristle deformation
+    function diffeq(u_, p_, t_)
+        v = vel(t_)
+        N = nrm(t_)
+        dzdt = lugrevelocity(mdl, N, v, u_)
+        return dzdt
+    end
+    if isempty(p)
+        zi = zero(T)
+    else
+        zi = p[1]
+    end
+    tspan = (first(t), last(t))
+    prob = ODEProblem(diffeq, zi, tspan)
+    sol = solve(prob)   # z = sol.u
+    v = vel.(sol.t)
+    N = nrm.(sol.t)
+    dzdt = lugrevelocity.(mdl, N, v, sol.u)
+    F = lugrefriction.(mdl, v, sol.u, dzdt)
+    return (force = F, t = t, z = sol.u, dzdt = dzdt)
 end
