@@ -1,13 +1,11 @@
 # FrictionModels
+FrictionModels is a library that provides various friction models suitable for use in mechanical simulations.  The library also provide a mechanism for fitting of the models to existing data.
 
 [![Build Status](https://github.com/jchristopherson/FrictionModels.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/jchristopherson/FrictionModels.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/jchristopherson/FrictionModels.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/jchristopherson/FrictionModels.jl)
 
-
-This is a work in progress.  Stay tuned as development is active.  Contributions are welcome; however, I'm still piecing together what the API should look like.
-
-# Example 1:
-The following example illustrates the use of the Lu-Gre model by computing and plotting the force-velocity relationship.
+## Basic Usage:
+The following example illustrates the use of the Lu-Gre model by computing and plotting the force-velocity relationship.  This example utilizes the Lu-Gre model; however, the same approach may be utilized for any of the other models by simply declaring the appropriate model type.
 ```julia
 using Plots
 using LaTeXStrings
@@ -44,7 +42,10 @@ plot(
 ```
 ![](images/lu_gre_example_plot_1.png?raw=true)
 
-# References
+## Model Fitting
+To be completed yet...
+
+## References
 - Quinn, D.D., "A New Regularization of Coulomb Friction." Journal of Vibration and Acoustics, 126, 2004, 391-397.
 - McMillan, A.J., "A Non-Linear Friction Model for Self-Excited Vibrations." Journal of Sound and Vibration, 205(3), 1997, 323-335.
 - Lopez, I.; Busturia, J.M.; Nijmeijer, H., "Energy Dissipation of a Friction Damper." Journal of Sound and Vibration, 278, 2004, 539-561.
