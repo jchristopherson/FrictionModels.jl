@@ -80,5 +80,5 @@ function friction(
         dzdt[i] = lugrevelocity(mdl, N[i], v[i], sol.u[i])
         F[i] = lugrefriction(mdl, v[i], sol.u[i], dzdt[i])
     end
-    return (force = F, t = t, z = sol.u, dzdt = dzdt)
+    return (force = F, t = sol.t, z = sol.u, dzdt = dzdt)
 end
