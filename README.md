@@ -6,6 +6,44 @@
 
 This is a work in progress.  Stay tuned as development is active.  Contributions are welcome; however, I'm still piecing together what the API should look like.
 
+# Example 1:
+The following example illustrates the use of the Lu-Gre model by computing and plotting the force-velocity relationship.
+```julia
+using Plots
+using LaTeXStrings
+using FrictionModels
+
+# Develop a function describing the relative velocity between the two bodies.
+velocity(t) = 1.5 * sin(10.0 * pi * t)
+
+# Develop a function describing the normal force between the two bodies.
+normal(t) = 100.0
+
+# Define the friction model
+mdl = LuGreModel(
+    0.25,
+    0.15,
+    0.01,
+    1.0e6,
+    6.1e3,
+    0.0
+)
+
+# Compute the friction model over a segment of time
+tspan = [0.0, 1.0]
+rsp = friction(mdl, tspan, velocity, normal)
+
+# Plot the results
+plot(
+    velocity.(rsp.t), 
+    rsp.force ./ (mdl.static_coefficient .* normal.(rsp.t)),
+    xlabel = L"v(t)",
+    ylabel = L"\frac{F}{\mu_s N}",
+    label = false
+)
+```
+![](images/lu_gre_example_plot_1.png?raw=true)
+
 # References
 - Quinn, D.D., "A New Regularization of Coulomb Friction." Journal of Vibration and Acoustics, 126, 2004, 391-397.
 - McMillan, A.J., "A Non-Linear Friction Model for Self-Excited Vibrations." Journal of Sound and Vibration, 205(3), 1997, 323-335.
