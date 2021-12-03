@@ -49,6 +49,14 @@ function friction(
 end
 
 """
+Applies the Lu-Gre model to compute the friction force at the defined state by
+performing the integration of the differential equation describing bristle
+deformation.  The user can specify that the solver choose the time step by only
+supplying a start and end simulation time, or the user can specify the time 
+points the solver returns by specifying more than 2 time points.  Notice, if
+supplying time points at which the solver should return the results, the time
+points do not need to be evenly spaced; however, they do need to be either
+monotonically increasing or decreasing.
 """
 function friction(
     mdl::LuGreModel,
@@ -71,14 +79,81 @@ function friction(
     end
     tspan = (first(t), last(t))
     prob = ODEProblem(diffeq, zi, tspan)
-    sol = solve(prob)   # z = sol.u
-    v = vel.(sol.t)
-    N = nrm.(sol.t)
-    dzdt = zeros(T, length(v))
-    F = zeros(T, length(v))
-    for i in 1:length(v)
+    if length(t) == 2
+        sol = solve(prob, alg_hints = [:stiff])
+    elseif length(t) > 2
+        sol = solve(prob, alg_hints = [:stiff], saveat = t)
+    else
+        error("No time range for the solution has been given.  Ensure at least two values are provided in the time array input.")
+    end
+    dzdt = zeros(T, length(sol.t))
+    F = zeros(T, length(sol.t))
+    for i in 1:length(sol.t)
+        v = vel(sol.t[i])
+        N = nrm(sol.t[i])
         dzdt[i] = lugrevelocity(mdl, N[i], v[i], sol.u[i])
         F[i] = lugrefriction(mdl, v[i], sol.u[i], dzdt[i])
     end
     return (force = F, t = sol.t, z = sol.u, dzdt = dzdt)
+end
+
+"""
+Uses a Levenberg-Marquardt solver to compute the best fit of a Lu-Gre model to
+a predefined data set.  As the supplied data is discretely sampled but the 
+solver may require points between those supplied, the solver will utilize linear
+interpolation to estimate values between supplied data points.
+
+The routine returns the fitted model along with the LsqFitResults type returned
+from the Levenberg-Marquardt solver.  The LsqFitResults allow exploration of 
+error margins, confidence intervals, etc.  Both results are returned as a 
+named tuple with the fitted model available as 'model' and the LsqFitResults
+available as 'fit'.
+"""
+function fit_model(
+    mdl::LuGreModel,
+    timedata::Array{T},
+    frictiondata::Array{T},
+    normaldata::Array{T},
+    velocitydata::Array{T}
+) where T <: Number
+    # Set up the interpolation for each data set
+    normal_interp = LinearInterpolation(
+        timedata, normaldata,
+        extrapolation_bc = Line()
+    )
+    velocity_interp = LinearInterpolation(
+        timedata, velocitydata,
+        extrapolation_bc = Line()
+    )
+
+    # Define the model.
+    # - t: The time data.
+    # - y: An array of parameter values
+    function model(t_, p_)  # t_ is an array of time points
+        # Define the model
+        m = LuGreModel(p_[1], p_[2], p_[3], p_[4], p_[5], p_[6])
+        
+        # Define functions to compute the velocity and normal force at the
+        # appropriate time.  This routine will utilize the interpolation
+        # objects previously defined.
+        vel(ti) = velocity_interp(ti)
+        nrm(ti) = normal_interp(ti)
+
+        # Solve the model
+        rsp = friction(m, t_, vel, nrm)
+        return rsp.force
+    end
+
+    # Fit the model
+    p0 = [
+        mdl.static_coefficient,
+        mdl.coulomb_coefficient,
+        mdl.stribeck_velocity,
+        mdl.bristle_stiffness,
+        mdl.bristle_damping,
+        mdl.viscous_damping
+    ]
+    fit = curve_fit(model, timedata, frictiondata, p0)
+    p = coef(fit)
+    return (model = LuGreModel(p[1], p[2], p[3], p[4], p[5], p[6]), fit = fit)
 end
