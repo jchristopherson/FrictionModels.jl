@@ -11,6 +11,7 @@ export friction
 export fit_model
 
 include("FrictionTypes.jl")
+include("HelperRoutines.jl")
 include("CoulombModels.jl")
 include("LuGreModels.jl")
 
