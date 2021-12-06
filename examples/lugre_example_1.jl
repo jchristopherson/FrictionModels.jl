@@ -25,7 +25,7 @@ rsp = friction(mdl, tspan, velocity, normal)
 # Plot the results
 plot(
     velocity.(rsp.t), 
-    rsp.force ./ (mdl.static_coefficient .* normal.(rsp.t)),
+    rsp.f ./ (mdl.static_coefficient .* normal.(rsp.t)),
     xlabel = L"v(t)",
     ylabel = L"\frac{F}{\mu_s N}",
     label = false
