@@ -63,7 +63,7 @@ function friction(
     t::Array{T},
     vel,
     nrm,
-    p::T...
+    p...
 ) where T <: Number
     # Solve the differential equation describing bristle deformation
     function diffeq(u_, p_, t_)
@@ -72,15 +72,20 @@ function friction(
         dzdt = lugrevelocity(mdl, N, v, u_)
         return dzdt
     end
-    if isempty(p)
-        zi = zero(T)
+    # if isempty(p)
+    #     zi = zero(T)
+    # else
+    #     zi = p.z
+    # end
+    if haskey(p..., :zi)
+        zi = p.zi
     else
-        zi = p[1]
+        zi = zero(T)
     end
     tspan = (first(t), last(t))
     prob = ODEProblem(diffeq, zi, tspan)
     if length(t) == 2
-        sol = solve(prob, alg_hints = [:stiff])
+        sol = solve(prob, alg_hints = [:stiff], reltol = reltol, abstol = abstol)
     elseif length(t) > 2
         sol = solve(prob, alg_hints = [:stiff], saveat = t)
     else
