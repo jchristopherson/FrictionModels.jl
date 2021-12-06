@@ -30,22 +30,30 @@ end
 """
 Applies the Lu-Gre model to compute the friction force at the defined state.
 The parameters argument 'p' is meant to accept the current bristle deformation;
-however, if this parameter is not specified, a value of 0 will be utilized.
+however, if this parameter is not specified, a value of 0 will be utilized.  The
+parameter is expected to be specified as 'z'.
+
+The output of the function is a named tuple containing the following fields.
+- f: The friction force.
+- dzdt: The bristle deformation velocity.
 """
 function friction(
     mdl::LuGreModel,
     nrm::Number,
-    vel::Float64,
-    p::Number...
+    vel::Float64;
+    p...
 )
-    if isempty(p)
-        z = zero(typeof(nrm))
+    args = Dict{Symbol, Any}(p)
+    if haskey(args, :z)
+        z = args[:z]
     else
-        z = p[1]
+        z = zero(typeof(nrm))
     end
+
     dzdt = lugrevelocity(mdl, nrm, vel, z)
     F = lugrefriction(mdl, vel, z, dzdt)
-    return (force = F, params = (dzdt))
+
+    return (f = F, dzdt = dzdt)
 end
 
 """
@@ -57,40 +65,61 @@ points the solver returns by specifying more than 2 time points.  Notice, if
 supplying time points at which the solver should return the results, the time
 points do not need to be evenly spaced; however, they do need to be either
 monotonically increasing or decreasing.
+
+Control over the ODE solver tolerances and maximum allowable time step are
+exposed to the calling code via the varargs 'p' input parameter.  The following
+inputs are currently recognized.
+- zi: The initial condition or initial bristle deformation.  The default is 0.
+- reltol: The relative ODE solver tolerance. The defaults is 1e-8.
+- abstol: The absolute ODE solver tolerance.  The default is 1e-6.
+- dtmax: The maximum allowable step size.  The default is 1e-3.
+
+The output of the function is a named tuple containing the following fields.
+- t: The solution time points.
+- f: The friction force.
+- z: The bristle deformation.
+- dzdt: The bristle deformation velocity.
 """
 function friction(
     mdl::LuGreModel,
     t::Array{T},
     vel,
-    nrm,
+    nrm;
     p...
 ) where T <: Number
-    # Solve the differential equation describing bristle deformation
+
     function diffeq(u_, p_, t_)
         v = vel(t_)
         N = nrm(t_)
-        dzdt = lugrevelocity(mdl, N, v, u_)
-        return dzdt
+        return lugrevelocity(mdl, N, v, u_)
     end
-    # if isempty(p)
-    #     zi = zero(T)
-    # else
-    #     zi = p.z
-    # end
-    if haskey(p..., :zi)
-        zi = p.zi
-    else
-        zi = zero(T)
-    end
+    
+    args = extract_options(p)
+
     tspan = (first(t), last(t))
-    prob = ODEProblem(diffeq, zi, tspan)
+    prob = ODEProblem(diffeq, args.zi, tspan)
+
     if length(t) == 2
-        sol = solve(prob, alg_hints = [:stiff], reltol = reltol, abstol = abstol)
+        sol = solve(
+            prob, 
+            alg_hints = [:stiff], 
+            reltol = args.reltol, 
+            abstol = args.abstol,
+            dtmax = args.dtmax
+        )
     elseif length(t) > 2
-        sol = solve(prob, alg_hints = [:stiff], saveat = t)
+        sol = solve(
+            prob, 
+            alg_hints = [:stiff], 
+            saveat = t,
+            reltol = args.reltol, 
+            abstol = args.abstol,
+            dtmax = args.dtmax
+        )
     else
         error("No time range for the solution has been given.  Ensure at least two values are provided in the time array input.")
     end
+
     dzdt = zeros(T, length(sol.t))
     F = zeros(T, length(sol.t))
     for i in 1:length(sol.t)
@@ -99,7 +128,8 @@ function friction(
         dzdt[i] = lugrevelocity(mdl, N, v, sol.u[i])
         F[i] = lugrefriction(mdl, v, sol.u[i], dzdt[i])
     end
-    return (force = F, t = sol.t, z = sol.u, dzdt = dzdt)
+
+    return (f = F, t = sol.t, z = sol.u, dzdt = dzdt)
 end
 
 """
@@ -113,14 +143,24 @@ from the Levenberg-Marquardt solver.  The LsqFitResults allow exploration of
 error margins, confidence intervals, etc.  Both results are returned as a 
 named tuple with the fitted model available as 'model' and the LsqFitResults
 available as 'fit'.
+
+Control over the ODE solver tolerances and maximum allowable time step are
+exposed to the calling code via the varargs 'pargs' input parameter.  The 
+following inputs are currently recognized.
+- zi: The initial condition or initial bristle deformation.  The default is 0.
+- reltol: The relative ODE solver tolerance. The defaults is 1e-8.
+- abstol: The absolute ODE solver tolerance.  The default is 1e-6.
+- dtmax: The maximum allowable step size.  The default is 1e-3.
 """
 function fit_model(
     mdl::LuGreModel,
     timedata::Array{T},
     frictiondata::Array{T},
     normaldata::Array{T},
-    velocitydata::Array{T}
+    velocitydata::Array{T};
+    pargs...
 ) where T <: Number
+
     # Set up the interpolation for each data set
     normal_interp = LinearInterpolation(
         timedata, normaldata,
@@ -145,7 +185,7 @@ function fit_model(
         nrm(ti) = normal_interp(ti)
 
         # Solve the model
-        rsp = friction(m, t_, vel, nrm)
+        rsp = friction(m, t_, vel, nrm, pargs)
         return rsp.force
     end
 
@@ -160,5 +200,6 @@ function fit_model(
     ]
     fit = curve_fit(model, timedata, frictiondata, p0)
     p = coef(fit)
+
     return (model = LuGreModel(p[1], p[2], p[3], p[4], p[5], p[6]), fit = fit)
 end
