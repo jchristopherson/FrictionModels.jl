@@ -40,7 +40,7 @@ The output of the function is a named tuple containing the following fields.
 function friction(
     mdl::LuGreModel,
     nrm::Number,
-    vel::Float64;
+    vel::Number;
     p...
 )
     args = Dict{Symbol, Any}(p)
@@ -83,8 +83,8 @@ The output of the function is a named tuple containing the following fields.
 function friction(
     mdl::LuGreModel,
     t::Array{T},
-    vel,
-    nrm;
+    nrm,
+    vel;
     p...
 ) where T <: Number
 
@@ -132,84 +132,17 @@ function friction(
     return (f = F, t = sol.t, z = sol.u, dzdt = dzdt)
 end
 
-"""
-Uses a Levenberg-Marquardt solver to compute the best fit of a Lu-Gre model to
-a predefined data set.  As the supplied data is discretely sampled but the 
-solver may require points between those supplied, the solver will utilize linear
-interpolation to estimate values between supplied data points.
+function model_from_array(mdl::LuGreModel, x::Array{T}) where T <: Number
+    LuGreModel(x[1], x[2], x[3], x[4], x[5], x[6])
+end
 
-The routine returns the fitted model along with the LsqFitResults type returned
-from the Levenberg-Marquardt solver.  The LsqFitResults allow exploration of 
-error margins, confidence intervals, etc.  Both results are returned as a 
-named tuple with the fitted model available as 'model' and the LsqFitResults
-available as 'fit'.
-
-Control over the ODE solver tolerances and maximum allowable time step are
-exposed to the calling code via the varargs 'pargs' input parameter.  The 
-following inputs are currently recognized.
-- zi: The initial condition or initial bristle deformation.  The default is 0.
-- reltol: The relative ODE solver tolerance. The defaults is 1e-8.
-- abstol: The absolute ODE solver tolerance.  The default is 1e-6.
-- dtmax: The maximum allowable step size.  The default is 1e-3.
-"""
-function fit_model(
-    mdl::LuGreModel,
-    timedata::Array{T},
-    frictiondata::Array{T},
-    normaldata::Array{T},
-    velocitydata::Array{T};
-    pargs...
-) where T <: Number
-
-    # Set up the interpolation for each data set
-    normal_interp = LinearInterpolation(
-        timedata, normaldata,
-        extrapolation_bc = Line()
-    )
-    velocity_interp = LinearInterpolation(
-        timedata, velocitydata,
-        extrapolation_bc = Line()
-    )
-
-    # Define the model.
-    # - t: The time data.
-    # - y: An array of parameter values
-    function model(t_, p_)  # t_ is an array of time points
-        # Define the model
-        m = LuGreModel(p_[1], p_[2], p_[3], p_[4], p_[5], p_[6])
-        
-        # Define functions to compute the velocity and normal force at the
-        # appropriate time.  This routine will utilize the interpolation
-        # objects previously defined.
-        vel(ti) = velocity_interp(ti)
-        nrm(ti) = normal_interp(ti)
-
-        # Solve the model
-        rsp = friction(m, t_, vel, nrm)
-        return rsp.f
-    end
-
-    # Extract model options
-    opt = extract_options(pargs)
-
-    # Fit the model
-    p0 = [
-        mdl.static_coefficient,
-        mdl.coulomb_coefficient,
-        mdl.stribeck_velocity,
-        mdl.bristle_stiffness,
-        mdl.bristle_damping,
-        mdl.viscous_damping
+function model_to_array(x::LuGreModel)
+    [
+        x.static_coefficient,
+        x.coulomb_coefficient,
+        x.static_coefficient,
+        x.bristle_stiffness,
+        x.bristle_damping,
+        x.viscous_damping
     ]
-    fit = curve_fit(
-        model, 
-        timedata, 
-        frictiondata,
-        p0,
-        lower = opt.lower,
-        upper = opt.upper
-    )
-    p = coef(fit)
-
-    return (model = LuGreModel(p[1], p[2], p[3], p[4], p[5], p[6]), fit = fit)
 end
