@@ -63,7 +63,7 @@ vel(ti) = velocity_interp(ti)
 
 # Solve the model
 tspan = [first(data[:,1]), last(data[:,1])]
-rsp = friction(results.model, tspan, vel, nrm)
+rsp = friction(results.model, tspan, nrm, vel)
 
 # Plot the data
 plt = plot(

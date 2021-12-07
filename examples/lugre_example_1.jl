@@ -20,7 +20,7 @@ mdl = LuGreModel(
 
 # Compute the friction model over a segment of time
 tspan = [0.0, 1.0]
-rsp = friction(mdl, tspan, velocity, normal)
+rsp = friction(mdl, tspan, normal, velocity)
 
 # Plot the results
 plot(
