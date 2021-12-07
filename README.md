@@ -43,7 +43,176 @@ plot(
 ![](images/lu_gre_example_plot_1.png?raw=true)
 
 ## Model Fitting
-To be completed yet...
+The following example illustrates fitting data stored in a CSV file to a Lu-Gre model.
+```julia
+using Plots
+using CSV
+using Printf
+using DataFrames
+using LaTeXStrings
+using Interpolations    # Required for the interpolation routines
+using LsqFit            # Required for the statistics on the fitting process
+using FrictionModels
+
+# Read in a CSV file containing the data to fit.
+#
+# The file is structured as follows:
+# Column 1: Time
+# Column 2: Velocity
+# Column 3: Normal force
+# Column 4: Friction Force
+println(pwd())
+data = CSV.read("examples//test_data_1.csv", DataFrame)
+
+# Construct an initial estimate for model parameters
+init_guess = LuGreModel(
+    0.25,
+    0.15,
+    0.01,
+    1.0e6,
+    6.0e3,
+    0.0
+)
+
+# We can specify limits on each parameter.  If no limit is desired for A
+# specific parameter, we can simply input -Inf or Inf for either a lower or
+# upper constraint respectively.
+lb = [0.2, 0.05, 0.0, 1e3, 0.0, 0.0]
+ub = [1.0, 0.2, Inf, Inf, Inf, 1.0]
+
+# Fit the model
+results = fit_model(
+    init_guess,     # Initial Guess
+    data[:,1],      # Time
+    data[:,4],      # Friction Force
+    data[:,3],      # Normal Force
+    data[:,2],      # Velocity,
+    lower = lb,     # Lower Bounds (optional)
+    upper = ub      # Upper Bounds (optional)
+)
+
+# Evaluate the model and plot against the data.  Use linear interpolation to 
+# allow the solver to estimate normal force and velocity values at time points
+# not aligned with the measured values.
+normal_interp = LinearInterpolation(
+    data[:,1], data[:,3],
+    extrapolation_bc = Line()
+)
+velocity_interp = LinearInterpolation(
+    data[:,1], data[:,2],
+    extrapolation_bc = Line()
+)
+
+# The friction routine requires a function to describe the velocity and normal
+# force; therefore, define functions that use the interpolation objects.
+nrm(ti) = normal_interp(ti)
+vel(ti) = velocity_interp(ti)
+
+# Solve the model
+tspan = [first(data[:,1]), last(data[:,1])]
+rsp = friction(results.model, tspan, vel, nrm)
+
+# Plot the data
+plt = plot(
+    vel.(rsp.t), rsp.f,
+    xlabel = L"v(t)",
+    ylabel = L"F(t)",
+    label = "Fitted Model",
+    lw = 2,
+    legend = :bottomright
+)
+plot!(
+    plt,
+    data[:,2], data[:,4],
+    st = :scatter,
+    label = "Measured Data"
+)
+display(plt)
+
+# Print out the coefficients of the fitted model
+@printf("Fitted Model Coefficients:\n")
+
+# Print out statistitics related to the fit
+sigma = stderror(results.fit)
+confidence = confidence_interval(results.fit)
+
+# Print out the results
+@printf(
+    "static_coefficient: %f\n\tError: %f\n\tConfidence Interval:: (%f, %f)\n",
+    results.model.static_coefficient,
+    sigma[1],
+    confidence[1][1],
+    confidence[1][2]
+)
+@printf(
+    "coulomb_coefficient: %f\n\tError: %f\n\tConfidence Interval:: (%f, %f)\n",
+    results.model.coulomb_coefficient,
+    sigma[2],
+    confidence[2][1],
+    confidence[2][2]
+)
+@printf(
+    "stribeck_velocity: %f\n\tError: %f\n\tConfidence Interval:: (%f, %f)\n",
+    results.model.stribeck_velocity,
+    sigma[3],
+    confidence[3][1],
+    confidence[3][2]
+)
+@printf(
+    "bristle_stiffness: %e\n\tError: %e\n\tConfidence Interval:: (%e, %e)\n",
+    results.model.bristle_stiffness,
+    sigma[4],
+    confidence[4][1],
+    confidence[4][2]
+)
+@printf(
+    "bristle_damping: %e\n\tError: %e\n\tConfidence Interval:: (%e, %e)\n",
+    results.model.bristle_damping,
+    sigma[5],
+    confidence[5][1],
+    confidence[5][2]
+)
+@printf(
+    "viscous_damping: %f\n\tError: %f\n\tConfidence Interval:: (%f, %f)\n",
+    results.model.viscous_damping,
+    sigma[6],
+    confidence[6][1],
+    confidence[6][2]
+)
+```
+```text
+Fitted Model Coefficients:
+static_coefficient: 0.252660
+        Error: 0.172755
+        Confidence Interval:: (-0.088048, 0.593369)
+coulomb_coefficient: 0.149436
+        Error: 0.003606
+        Confidence Interval:: (0.142325, 0.156548)
+stribeck_velocity: 0.009984
+        Error: 0.007186
+        Confidence Interval:: (-0.004189, 0.024156)
+bristle_stiffness: 1.000059e+06
+        Error: 5.292849e+06
+        Confidence Interval:: (-9.438519e+06, 1.143864e+07)
+bristle_damping: 6.000000e+03
+        Error: 1.263981e+13
+        Confidence Interval:: (-2.492829e+13, 2.492829e+13)
+viscous_damping: 0.005534
+        Error: 0.334478
+        Confidence Interval:: (-0.654125, 0.665193)
+```
+![](images/lu_gre_fit_example_plot_1.png?raw=true)
+
+For reference, the CSV file looked like this:
+```csv
+Time,Velocity,Normal,Friction
+0,0,100.0,0.417029813
+0.001,0.047116139,100.0,12.19570558
+0.002,0.094185779,100.0,23.82451708
+0.003,0.14116247,100.0,15.38126635
+...
+0.2,6.29379E-15,100.0,0.424359046
+```
 
 ## References
 - Quinn, D.D., "A New Regularization of Coulomb Friction." Journal of Vibration and Acoustics, 126, 2004, 391-397.
@@ -51,3 +220,5 @@ To be completed yet...
 - Lopez, I.; Busturia, J.M.; Nijmeijer, H., "Energy Dissipation of a Friction Damper." Journal of Sound and Vibration, 278, 2004, 539-561.
 - Dupont, P.; Armstrong, B.; Hayward, V., "Elasto-Plastic Friction Model: Contact Compliance and Stiction."Proceedinge 2000 American Control Conference, 2000.
 - Blaha, P. (2001). "Coulomb Friction Identification Using Harmonic Balance Method of Two-Relay System." PhD Thesis, BRNO University of Technology.
+- Rodriguez, E.D.; Garcia, B.S.; Cortes, F.R., (2020). "New Friction Model for Manipulator Robots based on Hyperbolic Functions." 19th National Mechantronics Congress, Queretaro, Mexico, 2020.
+
