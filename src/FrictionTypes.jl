@@ -24,3 +24,12 @@ struct LuGreModel <: FrictionModel
     bristle_damping::Number
     viscous_damping::Number
 end
+
+struct HyperbolicModel <: FrictionModel
+    friction_coefficient::Number
+    normalization_coefficient::Number
+    dissipation_coefficient::Number
+    hysteresis_coefficient::Number
+    stribeck_velocity::Number
+    viscous_damping::Number
+end
