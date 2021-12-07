@@ -185,9 +185,12 @@ function fit_model(
         nrm(ti) = normal_interp(ti)
 
         # Solve the model
-        rsp = friction(m, t_, vel, nrm, pargs)
-        return rsp.force
+        rsp = friction(m, t_, vel, nrm)
+        return rsp.f
     end
+
+    # Extract model options
+    opt = extract_options(pargs)
 
     # Fit the model
     p0 = [
@@ -198,7 +201,14 @@ function fit_model(
         mdl.bristle_damping,
         mdl.viscous_damping
     ]
-    fit = curve_fit(model, timedata, frictiondata, p0)
+    fit = curve_fit(
+        model, 
+        timedata, 
+        frictiondata,
+        p0,
+        lower = opt.lower,
+        upper = opt.upper
+    )
     p = coef(fit)
 
     return (model = LuGreModel(p[1], p[2], p[3], p[4], p[5], p[6]), fit = fit)
