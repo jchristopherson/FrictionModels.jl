@@ -182,24 +182,24 @@ confidence = confidence_interval(results.fit)
 ```
 ```text
 Fitted Model Coefficients:
-static_coefficient: 0.252660
-        Error: 0.172755
-        Confidence Interval:: (-0.088048, 0.593369)
-coulomb_coefficient: 0.149436
-        Error: 0.003606
-        Confidence Interval:: (0.142325, 0.156548)
-stribeck_velocity: 0.009984
-        Error: 0.007186
-        Confidence Interval:: (-0.004189, 0.024156)
-bristle_stiffness: 1.000059e+06
-        Error: 5.292849e+06
-        Confidence Interval:: (-9.438519e+06, 1.143864e+07)
-bristle_damping: 6.000000e+03
-        Error: 1.263981e+13
-        Confidence Interval:: (-2.492829e+13, 2.492829e+13)
-viscous_damping: 0.005534
-        Error: 0.334478
-        Confidence Interval:: (-0.654125, 0.665193)
+static_coefficient: 0.200000
+        Error: 0.012948
+        Confidence Interval:: (0.174464, 0.225536)
+coulomb_coefficient: 0.146012
+        Error: 0.004643
+        Confidence Interval:: (0.136855, 0.155170)
+stribeck_velocity: 0.152533
+        Error: 0.002468
+        Confidence Interval:: (0.147666, 0.157401)
+bristle_stiffness: 4.277057e+04
+        Error: 9.193762e+03
+        Confidence Interval:: (2.463859e+04, 6.090254e+04)
+bristle_damping: 3.109026e+02
+        Error: 1.354454e+01
+        Confidence Interval:: (2.841900e+02, 3.376152e+02)
+viscous_damping: 0.350666
+        Error: 0.411170
+        Confidence Interval:: (-0.460245, 1.161576)
 ```
 ![](images/lu_gre_fit_example_plot_1.png?raw=true)
 
