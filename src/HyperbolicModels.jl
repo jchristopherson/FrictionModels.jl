@@ -10,3 +10,33 @@ function friction(mdl::HyperbolicModel, nrm::Number, vel::Number)
         mdl.viscous_damping * vel
     return (f = F, params = ())
 end
+
+function friction(
+    mdl::HyperbolicModel,
+    t::Array{T},
+    nrm,
+    vel;
+    p...
+) where T<: Number
+
+    npts = length(t)
+    F = zeros(T, npts)
+    for i in (1:npts)
+        F[i] = friction(mdl, nrm(t[i]), vel(t[i]))
+    end
+end
+
+function model_from_array(mdl::HyperbolicModel, x::Array{T}) where T <: Number
+    HyperbolicModel(x[1], x[2], x[3], x[4], x[5], x[6])
+end
+
+function model_to_array(x::HyperbolicModel)
+    [
+        x.friction_coefficient, 
+        x.normalization_coefficient, 
+        x.dissipation_coefficient, 
+        x.hysteresis_coefficient, 
+        x.stribeck_velocity, 
+        x.viscous_damping
+    ]
+end
