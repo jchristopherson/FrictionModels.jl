@@ -1,6 +1,6 @@
 # HelperRoutines.jl
 
-function extract_options(args)
+function extract_options(args, ndof::Int64 = 1)
     o = Dict{Symbol, Any}(args)
     if haskey(o, :zi)
         zi = o[:zi]
@@ -22,6 +22,22 @@ function extract_options(args)
     else
         dtmax = 1e-3
     end
-    return (zi = zi, reltol = reltol, abstol = abstol, dtmax = dtmax)
+    if haskey(o, :lower)
+        lb = o[:lower]
+    else
+        lb = -Inf * ones(ndof)
+    end
+    if haskey(o, :upper)
+        ub = o[:upper]
+    else
+        ub = Inf * ones(ndof)
+    end
+    return (
+        zi = zi, 
+        reltol = reltol, 
+        abstol = abstol, 
+        dtmax = dtmax,
+        lower = lb,
+        upper = ub
+    )
 end
-
