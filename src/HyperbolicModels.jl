@@ -3,7 +3,7 @@
 """
 Applies the Hyperbolic model proposed by Rodriguez et al.
 """
-function friction(mdl::HyperbolicModel, nrm::Number, vel::Number)
+function friction(mdl::HyperbolicModel, nrm::Number, vel::Number; p...)
     F = mdl.friction_coefficient * nrm * mdl.normalization_coefficient * 
         sign(mdl.dissipation_coefficient * vel) * 
         tanh(abs(mdl.dissipation_coefficient * vel))^(2 * mdl.hysteresis_coefficient - 1) / 
@@ -26,8 +26,11 @@ function friction(
         rsp = friction(mdl, nrm(t[i]), vel(t[i]))
         F[i] = rsp.f
     end
-    return (f = F, params = ())
+    return (f = F, t = t)
 end
+
+# ------------------------------------------------------------------------------
+# Required routines to support friction model fitting.
 
 function model_from_array(mdl::HyperbolicModel, x::Array{T}) where T <: Number
     HyperbolicModel(x[1], x[2], x[3], x[4], x[5], x[6])
