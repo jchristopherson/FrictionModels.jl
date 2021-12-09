@@ -23,15 +23,9 @@ init_guess = HyperbolicModel(
     2.0,
     20.0,
     1.0,
-    0.01,
-    0.0
+    0.1,
+    0.1
 )
-
-# We can specify limits on each parameter.  If no limit is desired for A
-# specific parameter, we can simply input -Inf or Inf for either a lower or
-# upper constraint respectively.
-# lb = [0.05, 0.01, 0.01, 0.01, 0.01, 0.01]
-# ub = [1.0, Inf, Inf, Inf, Inf, Inf]
 
 # Fit the model
 results = fit_model(
@@ -39,9 +33,7 @@ results = fit_model(
     data[:,1],      # Time
     data[:,4],      # Friction Force
     data[:,3],      # Normal Force
-    data[:,2]      # Velocity
-    # lower = lb,
-    # upper = ub
+    data[:,2]       # Velocity
 )
 
 # Evaluate the model and plot against the data.  Use linear interpolation to 
