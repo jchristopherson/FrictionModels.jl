@@ -6,7 +6,7 @@ using Test
     mdl = CoulombModel(0.25)
     N = 100.0
     F = friction(mdl, N, v)
-    @test F.f == -sign(v) * N * mdl.coefficient
+    @test F.f == sign(v) * N * mdl.coefficient
 end
 
 @testset "LuGreModel" begin
