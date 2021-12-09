@@ -9,7 +9,7 @@ function friction(mdl::HyperbolicModel, nrm::Number, vel::Number; p...)
         tanh(abs(mdl.dissipation_coefficient * vel))^(2 * mdl.hysteresis_coefficient - 1) / 
         (1.0 + atan(abs(mdl.dissipation_coefficient * vel))^(2 * mdl.stribeck_velocity)) + 
         mdl.viscous_damping * vel
-    return (f = F, params = ())
+    return (f = F, dzdt = zero(typeof(nrm)))
 end
 
 function friction(
@@ -26,7 +26,7 @@ function friction(
         rsp = friction(mdl, nrm(t[i]), vel(t[i]))
         F[i] = rsp.f
     end
-    return (f = F, t = t)
+    return (f = F, t = t, z = zeros(T, length(t)), dzdt = zeros(T, length(t)))
 end
 
 # ------------------------------------------------------------------------------

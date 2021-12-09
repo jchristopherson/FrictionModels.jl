@@ -9,7 +9,7 @@ function friction(mdl::CoulombModel, nrm::Number, vel::Number; p...)
     else
         F = mdl.coefficient * nrm * sign(vel)
     end
-    return (f = F, params = ())
+    return (f = F, dzdt = zero(typeof(nrm)))
 end
 
 function friction(
@@ -26,23 +26,7 @@ function friction(
         rsp = friction(mdl, nrm(t[i]), vel(t[i]))
         F[i] = rsp.f
     end
-    return (f = F, params = ())
-end
-
-function friction(
-    mdl::CoulombModel,
-    t::Array{T},
-    nrm,
-    vel;
-    p...
-) where T <: Number
-    npts = length(t)
-    F = zeros(T, npts)
-    for i in (1:npts)
-        rsp = friction(mdl, nrm(t[i]), vel(t[i]))
-        F[i] = rsp.f
-    end
-    return (f = F, t = t)
+    return (f = F, t = t, z = zeros(T, length(t)), dzdt = zeros(T, length(t)))
 end
 
 # ------------------------------------------------------------------------------
