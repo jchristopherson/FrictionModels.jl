@@ -132,6 +132,9 @@ function friction(
     return (f = F, t = sol.t, z = sol.u, dzdt = dzdt)
 end
 
+# ------------------------------------------------------------------------------
+# Required routines to support friction model fitting.
+
 function model_from_array(mdl::LuGreModel, x::Array{T}) where T <: Number
     LuGreModel(x[1], x[2], x[3], x[4], x[5], x[6])
 end
