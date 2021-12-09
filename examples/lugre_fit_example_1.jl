@@ -91,42 +91,42 @@ confidence = confidence_interval(results.fit)
 
 # Print out the results
 @printf(
-    "static_coefficient: %f\n\tError: %f\n\tConfidence Interval:: (%f, %f)\n",
+    "static_coefficient: %f\n\tError: %f\n\tConfidence Interval: (%f, %f)\n",
     results.model.static_coefficient,
     sigma[1],
     confidence[1][1],
     confidence[1][2]
 )
 @printf(
-    "coulomb_coefficient: %f\n\tError: %f\n\tConfidence Interval:: (%f, %f)\n",
+    "coulomb_coefficient: %f\n\tError: %f\n\tConfidence Interval: (%f, %f)\n",
     results.model.coulomb_coefficient,
     sigma[2],
     confidence[2][1],
     confidence[2][2]
 )
 @printf(
-    "stribeck_velocity: %f\n\tError: %f\n\tConfidence Interval:: (%f, %f)\n",
+    "stribeck_velocity: %f\n\tError: %f\n\tConfidence Interval: (%f, %f)\n",
     results.model.stribeck_velocity,
     sigma[3],
     confidence[3][1],
     confidence[3][2]
 )
 @printf(
-    "bristle_stiffness: %e\n\tError: %e\n\tConfidence Interval:: (%e, %e)\n",
+    "bristle_stiffness: %e\n\tError: %e\n\tConfidence Interval: (%e, %e)\n",
     results.model.bristle_stiffness,
     sigma[4],
     confidence[4][1],
     confidence[4][2]
 )
 @printf(
-    "bristle_damping: %e\n\tError: %e\n\tConfidence Interval:: (%e, %e)\n",
+    "bristle_damping: %e\n\tError: %e\n\tConfidence Interval: (%e, %e)\n",
     results.model.bristle_damping,
     sigma[5],
     confidence[5][1],
     confidence[5][2]
 )
 @printf(
-    "viscous_damping: %f\n\tError: %f\n\tConfidence Interval:: (%f, %f)\n",
+    "viscous_damping: %f\n\tError: %f\n\tConfidence Interval: (%f, %f)\n",
     results.model.viscous_damping,
     sigma[6],
     confidence[6][1],

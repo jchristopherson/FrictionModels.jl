@@ -138,42 +138,42 @@ confidence = confidence_interval(results.fit)
 
 # Print out the results
 @printf(
-    "static_coefficient: %f\n\tError: %f\n\tConfidence Interval:: (%f, %f)\n",
+    "static_coefficient: %f\n\tError: %f\n\tConfidence Interval: (%f, %f)\n",
     results.model.static_coefficient,
     sigma[1],
     confidence[1][1],
     confidence[1][2]
 )
 @printf(
-    "coulomb_coefficient: %f\n\tError: %f\n\tConfidence Interval:: (%f, %f)\n",
+    "coulomb_coefficient: %f\n\tError: %f\n\tConfidence Interval: (%f, %f)\n",
     results.model.coulomb_coefficient,
     sigma[2],
     confidence[2][1],
     confidence[2][2]
 )
 @printf(
-    "stribeck_velocity: %f\n\tError: %f\n\tConfidence Interval:: (%f, %f)\n",
+    "stribeck_velocity: %f\n\tError: %f\n\tConfidence Interval: (%f, %f)\n",
     results.model.stribeck_velocity,
     sigma[3],
     confidence[3][1],
     confidence[3][2]
 )
 @printf(
-    "bristle_stiffness: %e\n\tError: %e\n\tConfidence Interval:: (%e, %e)\n",
+    "bristle_stiffness: %e\n\tError: %e\n\tConfidence Interval: (%e, %e)\n",
     results.model.bristle_stiffness,
     sigma[4],
     confidence[4][1],
     confidence[4][2]
 )
 @printf(
-    "bristle_damping: %e\n\tError: %e\n\tConfidence Interval:: (%e, %e)\n",
+    "bristle_damping: %e\n\tError: %e\n\tConfidence Interval: (%e, %e)\n",
     results.model.bristle_damping,
     sigma[5],
     confidence[5][1],
     confidence[5][2]
 )
 @printf(
-    "viscous_damping: %f\n\tError: %f\n\tConfidence Interval:: (%f, %f)\n",
+    "viscous_damping: %f\n\tError: %f\n\tConfidence Interval: (%f, %f)\n",
     results.model.viscous_damping,
     sigma[6],
     confidence[6][1],
@@ -184,22 +184,22 @@ confidence = confidence_interval(results.fit)
 Fitted Model Coefficients:
 static_coefficient: 0.200000
         Error: 0.012948
-        Confidence Interval:: (0.174464, 0.225536)
+        Confidence Interval: (0.174464, 0.225536)
 coulomb_coefficient: 0.146012
         Error: 0.004643
-        Confidence Interval:: (0.136855, 0.155170)
+        Confidence Interval: (0.136855, 0.155170)
 stribeck_velocity: 0.152533
         Error: 0.002468
-        Confidence Interval:: (0.147666, 0.157401)
+        Confidence Interval: (0.147666, 0.157401)
 bristle_stiffness: 4.277057e+04
         Error: 9.193762e+03
-        Confidence Interval:: (2.463859e+04, 6.090254e+04)
+        Confidence Interval: (2.463859e+04, 6.090254e+04)
 bristle_damping: 3.109026e+02
         Error: 1.354454e+01
-        Confidence Interval:: (2.841900e+02, 3.376152e+02)
+        Confidence Interval: (2.841900e+02, 3.376152e+02)
 viscous_damping: 0.350666
         Error: 0.411170
-        Confidence Interval:: (-0.460245, 1.161576)
+        Confidence Interval: (-0.460245, 1.161576)
 ```
 ![](images/lu_gre_fit_example_plot_1.png?raw=true)
 
