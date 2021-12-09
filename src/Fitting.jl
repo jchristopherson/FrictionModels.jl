@@ -57,11 +57,13 @@ function fit_model(
         return rsp.f
     end
 
+    # Convert the model to array form
+    p0 = model_to_array(mdl)
+
     # Extract the model options
-    opt = extract_options(pargs)
+    opt = extract_options(pargs, length(p0))
 
     # Fit the model
-    p0 = model_to_array(mdl)
     fit = curve_fit(
         model,
         timedata,
