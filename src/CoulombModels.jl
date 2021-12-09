@@ -7,7 +7,7 @@ function friction(mdl::CoulombModel, nrm::Number, vel::Number)
     if vel == 0.0
         F = mdl.coefficient * nrm
     else
-        F = -mdl.coefficient * nrm * sign(vel)
+        F = mdl.coefficient * nrm * sign(vel)
     end
     return (f = F, params = ())
 end
@@ -23,7 +23,8 @@ function friction(
     npts = length(t)
     F = zeros(T, npts)
     for i in (1:npts)
-        F[i] = friction(mdl, nrm(t[i]), vel(t[i]))
+        rsp = friction(mdl, nrm(t[i]), vel(t[i]))
+        F[i] = rsp.f
     end
     return (f = F, params = ())
 end
