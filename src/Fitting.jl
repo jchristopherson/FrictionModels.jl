@@ -13,7 +13,6 @@ available as 'fit'.
 Control over the ODE solver tolerances and maximum allowable time step are
 exposed to the calling code via the varargs 'pargs' input parameter.  The 
 following inputs are currently recognized.
-- zi: The initial condition or initial bristle deformation.  The default is 0.
 - reltol: The relative ODE solver tolerance. The defaults is 1e-8.
 - abstol: The absolute ODE solver tolerance.  The default is 1e-6.
 - dtmax: The maximum allowable step size.  The default is 1e-3.
@@ -21,17 +20,23 @@ following inputs are currently recognized.
 - upper: An N-element array of upper bounds on each of the N coefficients.
 """
 function fit_model(
-    mdl::FrictionModel,
+    mdl::HeuristicFrictionModel,
     timedata::Array{T},
     frictiondata::Array{T},
     normaldata::Array{T},
-    velocitydata::Array{T};
+    positiondata::Array{T},
+    velocitydata::Array{T},
+    z0::Array{T};
     pargs...
 ) where T <: Number
 
     # Set up the interpolation for each data set
     normal_interp = LinearInterpolation(
         timedata, normaldata,
+        extrapolation_bc = Line()
+    )
+    position_interp = LinearInterpolation(
+        timedata, positiondata,
         extrapolation_bc = Line()
     )
     velocity_interp = LinearInterpolation(
@@ -49,11 +54,12 @@ function fit_model(
         # Define functions to compute the velocity and normal force at the
         # appropriate time.  This routine will utilize the interpolation
         # objects previously defined.
+        pos(ti) = position_interp(ti)
         vel(ti) = velocity_interp(ti)
         nrm(ti) = normal_interp(ti)
 
         # Solve the model
-        rsp = friction(m, t_, nrm, vel)
+        rsp = friction(m, t_, nrm, pos, vel, z0; pargs)
         return rsp.f
     end
 
@@ -75,4 +81,40 @@ function fit_model(
     p = coef(fit)
 
     return (model = model_from_array(mdl, p), fit = fit)
+end
+
+"""
+Uses a Levenberg-Marquardt solver to compute the best fit of a friction model to
+a predefined data set.  As the supplied data is discretely sampled but the 
+solver may require points between those supplied, the solver will utilize linear
+interpolation to estimate values between supplied data points.  This instance
+is used when the model does not depend upon position data.
+
+The routine returns the fitted model along with the LsqFitResults type returned
+from the Levenberg-Marquardt solver.  The LsqFitResults allow exploration of 
+error margins, confidence intervals, etc.  Both results are returned as a 
+named tuple with the fitted model available as 'model' and the LsqFitResults
+available as 'fit'.
+
+Control over the ODE solver tolerances and maximum allowable time step are
+exposed to the calling code via the varargs 'pargs' input parameter.  The 
+following inputs are currently recognized.
+- reltol: The relative ODE solver tolerance. The defaults is 1e-8.
+- abstol: The absolute ODE solver tolerance.  The default is 1e-6.
+- dtmax: The maximum allowable step size.  The default is 1e-3.
+- lower: An N-element array of lower bounds on each of the N coefficients.
+- upper: An N-element array of upper bounds on each of the N coefficients.
+"""
+function fit_model(
+    mdl::HeuristicFrictionModel,
+    timedata::Array{T},
+    frictiondata::Array{T},
+    normaldata::Array{T},
+    velocitydata::Array{T},
+    z0::Array{T};
+    pargs...
+) where T <: Number
+
+    pos = zeros(T, length(timedata))
+    return fit_model(mdl, timedata, frictiondata, normaldata, pos, velocitydata, z0; pargs...)
 end
