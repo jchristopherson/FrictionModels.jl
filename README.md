@@ -4,8 +4,14 @@ FrictionModels is a library that provides various friction models suitable for u
 [![Build Status](https://github.com/jchristopherson/FrictionModels.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/jchristopherson/FrictionModels.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/jchristopherson/FrictionModels.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/jchristopherson/FrictionModels.jl)
 
+## Implemented Models:
+The following models are currently implemented.
+- Coulomb
+- LuGre
+- Hyperbolic [6]
+
 ## Basic Usage:
-The following example illustrates the use of the Lu-Gre model by computing and plotting the force-velocity relationship.  This example utilizes the Lu-Gre model; however, the same approach may be utilized for any of the other models by simply declaring the appropriate model type.
+The following example illustrates the use of the Lu-Gre model by computing and plotting the force-velocity relationship.  This example utilizes the Lu-Gre model, however, the same approach may be utilized for any of the other models by simply declaring the appropriate model type.
 ```julia
 using Plots
 using LaTeXStrings
@@ -17,24 +23,29 @@ velocity(t) = 1.5 * sin(10.0 * pi * t)
 # Develop a function describing the normal force between the two bodies.
 normal(t) = 100.0
 
+# A function describing the relative position between two bodies.  Notice, this
+# is not needed by the Lu-Gre model, and as such, any function can be defined
+# that only takes a single argument.
+position(t) = 0.0
+
 # Define the friction model
 mdl = LuGreModel(
     0.25,
     0.15,
     0.01,
     1.0e6,
-    6.1e3,
+    7.5e2,
     0.0
 )
 
 # Compute the friction model over a segment of time
 tspan = [0.0, 1.0]
-rsp = friction(mdl, tspan, normal, velocity)
+rsp = friction(mdl, tspan, normal, position, velocity, [0.0])
 
 # Plot the results
 plot(
     velocity.(rsp.t), 
-    rsp.force ./ (mdl.static_coefficient .* normal.(rsp.t)),
+    rsp.f ./ (mdl.static_coefficient .* normal.(rsp.t)),
     xlabel = L"v(t)",
     ylabel = L"\frac{F}{\mu_s N}",
     label = false
@@ -50,7 +61,6 @@ using CSV
 using Printf
 using DataFrames
 using LaTeXStrings
-using Interpolations    # Required for the interpolation routines
 using LsqFit            # Required for the statistics on the fitting process
 using FrictionModels
 
@@ -86,35 +96,19 @@ results = fit_model(
     data[:,1],      # Time
     data[:,4],      # Friction Force
     data[:,3],      # Normal Force
-    data[:,2],      # Velocity,
+    data[:,2],      # Velocity
+    [0.0],          # Initial Condition Vector
     lower = lb,     # Lower Bounds (optional)
     upper = ub      # Upper Bounds (optional)
 )
 
-# Evaluate the model and plot against the data.  Use linear interpolation to 
-# allow the solver to estimate normal force and velocity values at time points
-# not aligned with the measured values.
-normal_interp = LinearInterpolation(
-    data[:,1], data[:,3],
-    extrapolation_bc = Line()
-)
-velocity_interp = LinearInterpolation(
-    data[:,1], data[:,2],
-    extrapolation_bc = Line()
-)
-
-# The friction routine requires a function to describe the velocity and normal
-# force; therefore, define functions that use the interpolation objects.
-nrm(ti) = normal_interp(ti)
-vel(ti) = velocity_interp(ti)
-
 # Solve the model
 tspan = [first(data[:,1]), last(data[:,1])]
-rsp = friction(results.model, tspan, nrm, vel)
+rsp = friction(results.model, data[:,1], data[:,3], data[:,2], [0.0])
 
 # Plot the data
 plt = plot(
-    vel.(rsp.t), rsp.f,
+    data[:,2], rsp.f,
     xlabel = L"v(t)",
     ylabel = L"F(t)",
     label = "Fitted Model",
@@ -182,24 +176,24 @@ confidence = confidence_interval(results.fit)
 ```
 ```text
 Fitted Model Coefficients:
-static_coefficient: 0.200000
-        Error: 0.012948
-        Confidence Interval: (0.174464, 0.225536)
-coulomb_coefficient: 0.146012
-        Error: 0.004643
-        Confidence Interval: (0.136855, 0.155170)
-stribeck_velocity: 0.152533
-        Error: 0.002468
-        Confidence Interval: (0.147666, 0.157401)
-bristle_stiffness: 4.277057e+04
-        Error: 9.193762e+03
-        Confidence Interval: (2.463859e+04, 6.090254e+04)
-bristle_damping: 3.109026e+02
-        Error: 1.354454e+01
-        Confidence Interval: (2.841900e+02, 3.376152e+02)
-viscous_damping: 0.350666
-        Error: 0.411170
-        Confidence Interval: (-0.460245, 1.161576)
+static_coefficient: 0.200003
+        Error: 0.000182
+        Confidence Interval: (0.199645, 0.200361)
+coulomb_coefficient: 0.132016
+        Error: 0.000127
+        Confidence Interval: (0.131766, 0.132266)
+stribeck_velocity: 0.232961
+        Error: 0.000175
+        Confidence Interval: (0.232615, 0.233307)
+bristle_stiffness: 9.528510e+05
+        Error: 1.747849e+02
+        Confidence Interval: (9.525062e+05, 9.531957e+05)
+bristle_damping: 9.182547e+01
+        Error: 7.017297e+01
+        Confidence Interval: (-4.656995e+01, 2.302209e+02)
+viscous_damping: 1.000000
+        Error: 0.163265
+        Confidence Interval: (0.678009, 1.321991)
 ```
 ![](images/lu_gre_fit_example_plot_1.png?raw=true)
 
@@ -215,10 +209,13 @@ Time,Velocity,Normal,Friction
 ```
 
 ## References
-- Quinn, D.D., "A New Regularization of Coulomb Friction." Journal of Vibration and Acoustics, 126, 2004, 391-397.
-- McMillan, A.J., "A Non-Linear Friction Model for Self-Excited Vibrations." Journal of Sound and Vibration, 205(3), 1997, 323-335.
-- Lopez, I.; Busturia, J.M.; Nijmeijer, H., "Energy Dissipation of a Friction Damper." Journal of Sound and Vibration, 278, 2004, 539-561.
-- Dupont, P.; Armstrong, B.; Hayward, V., "Elasto-Plastic Friction Model: Contact Compliance and Stiction."Proceedinge 2000 American Control Conference, 2000.
-- Blaha, P. (2001). "Coulomb Friction Identification Using Harmonic Balance Method of Two-Relay System." PhD Thesis, BRNO University of Technology.
-- Rodriguez, E.D.; Garcia, B.S.; Cortes, F.R., (2020). "New Friction Model for Manipulator Robots based on Hyperbolic Functions." 19th National Mechantronics Congress, Queretaro, Mexico, 2020.
-
+1. Quinn, D.D., "A New Regularization of Coulomb Friction." Journal of Vibration and Acoustics, 126, 2004, 391-397.
+2. McMillan, A.J., "A Non-Linear Friction Model for Self-Excited Vibrations." Journal of Sound and Vibration, 205(3), 1997, 323-335.
+3. Lopez, I., Busturia, J.M., Nijmeijer, H., "Energy Dissipation of a Friction Damper." Journal of Sound and Vibration, 278, 2004, 539-561.
+4. Dupont, P., Armstrong, B., Hayward, V., "Elasto-Plastic Friction Model: Contact Compliance and Stiction."Proceedinge 2000 American Control Conference, 2000.
+5. Blaha, P. (2001). "Coulomb Friction Identification Using Harmonic Balance Method of Two-Relay System." PhD Thesis, BRNO University of Technology.
+6. Rodriguez, E.D., Garcia, B.S., Cortes, F.R., "New Friction Model for Manipulator Robots based on Hyperbolic Functions." 19th National Mechantronics Congress, Queretaro, Mexico, 2020.
+7. Al-Bender, F., Lampaert, V., Swevers, J., "Modeling of Dry Sliding Friction Dynamics: From Heuristic Models to Physically Motivated Models and Back." Americal Institute of Physics, 14(2): 445-460, 2004.
+8. Al-Bender, F., Lampaert, V., Swevers, J., "A Novel Generic Model at Asperity Level for Dry Friction Force Dynamics." Tribology Letters, 16: 81-93, 2004.
+9. Lampaert, V., Swevers, J., Al-Bender, F., "Modification of the Leuven Integrated Friction Model Structure." IEEE Transactions on Automatic Control, 47(4): 683-687, 2002.
+10. Al-Bender, F., Lampaert, V., Swevers, J., "The Generalized Maxwell-Slip Model: A Novel Model for Friction Simulation and Compensation." IEEE Transactions on Automatic Control, 50(11):1883-1887, 2005.
