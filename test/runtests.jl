@@ -9,18 +9,3 @@ using Test
     @test F.f == sign(v) * N * mdl.coefficient
 end
 
-@testset "LuGreModel" begin
-   v = -0.5
-   mdl = LuGreModel(
-       0.25,
-       0.15,
-       0.01,
-       1.0e6,
-       1.0e3,
-       0.0
-   )
-   N = 100.0
-   z = 0.0
-   F = friction(mdl, N, v, z = z)
-   @test F.f == z * mdl.bristle_stiffness
-end
