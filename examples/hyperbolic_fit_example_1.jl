@@ -3,7 +3,6 @@ using CSV
 using Printf
 using DataFrames
 using LaTeXStrings
-using Interpolations    # Required for the interpolation routines
 using LsqFit            # Required for the statistics on the fitting process
 using FrictionModels
 
@@ -36,29 +35,12 @@ results = fit_model(
     data[:,2]       # Velocity
 )
 
-# Evaluate the model and plot against the data.  Use linear interpolation to 
-# allow the solver to estimate normal force and velocity values at time points
-# not aligned with the measured values.
-normal_interp = LinearInterpolation(
-    data[:,1], data[:,3],
-    extrapolation_bc = Line()
-)
-velocity_interp = LinearInterpolation(
-    data[:,1], data[:,2],
-    extrapolation_bc = Line()
-)
-
-# The friction routine requires a function to describe the velocity and normal
-# force; therefore, define functions that use the interpolation objects.
-nrm(ti) = normal_interp(ti)
-vel(ti) = velocity_interp(ti)
-
 # Solve the model
-rsp = friction(results.model, data[:,1], nrm, vel)
+F = friction.(results.model, data[:,3], data[:,2])
 
 # Plot the data
 plt = plot(
-    vel.(data[:,1]), rsp.f,
+    data[:,2], F,
     xlabel = L"v(t)",
     ylabel = L"F(t)",
     label = "Fitted Model",
