@@ -3,30 +3,13 @@
 """
 Applies Coulomb's model to compute the friction force at the defined state.
 """
-function friction(mdl::CoulombModel, nrm::Number, vel::Number; p...)
+function friction(mdl::CoulombModel, nrm::Number, vel::Number)
     if vel == 0.0
         F = mdl.coefficient * nrm
     else
         F = mdl.coefficient * nrm * sign(vel)
     end
-    return (f = F, dzdt = zero(typeof(nrm)))
-end
-
-function friction(
-    mdl::CoulombModel,
-    t::Array{T},
-    nrm,
-    vel;
-    p...
-) where T<: Number
-    
-    npts = length(t)
-    F = zeros(T, npts)
-    for i in (1:npts)
-        rsp = friction(mdl, nrm(t[i]), vel(t[i]))
-        F[i] = rsp.f
-    end
-    return (f = F, t = t, z = zeros(T, length(t)), dzdt = zeros(T, length(t)))
+    return F
 end
 
 # ------------------------------------------------------------------------------

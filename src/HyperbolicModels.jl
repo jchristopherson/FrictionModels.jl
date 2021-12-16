@@ -3,30 +3,12 @@
 """
 Applies the Hyperbolic model proposed by Rodriguez et al.
 """
-function friction(mdl::HyperbolicModel, nrm::Number, vel::Number; p...)
-    F = mdl.friction_coefficient * nrm * mdl.normalization_coefficient * 
+function friction(mdl::HyperbolicModel, nrm::Number, vel::Number)
+    mdl.friction_coefficient * nrm * mdl.normalization_coefficient * 
         sign(mdl.dissipation_coefficient * vel) * 
         tanh(abs(mdl.dissipation_coefficient * vel))^(2 * mdl.hysteresis_coefficient - 1) / 
         (1.0 + atan(abs(mdl.dissipation_coefficient * vel))^(2 * mdl.stribeck_velocity)) + 
         mdl.viscous_damping * vel
-    return (f = F, dzdt = zero(typeof(nrm)))
-end
-
-function friction(
-    mdl::HyperbolicModel,
-    t::Array{T},
-    nrm,
-    vel;
-    p...
-) where T<: Number
-
-    npts = length(t)
-    F = zeros(T, npts)
-    for i in (1:npts)
-        rsp = friction(mdl, nrm(t[i]), vel(t[i]))
-        F[i] = rsp.f
-    end
-    return (f = F, t = t, z = zeros(T, length(t)), dzdt = zeros(T, length(t)))
 end
 
 # ------------------------------------------------------------------------------

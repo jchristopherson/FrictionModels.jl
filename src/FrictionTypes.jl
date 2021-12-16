@@ -33,6 +33,9 @@ struct LuGreModel <: HeuristicFrictionModel
     viscous_damping::Number
 end
 
+"""
+A friction model based upon hyperbolic functions proposed by Rodriguez et. al.
+"""
 struct HyperbolicModel <: FrictionModel
     friction_coefficient::Number
     normalization_coefficient::Number

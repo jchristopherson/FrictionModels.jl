@@ -20,4 +20,9 @@ include("CoulombModels.jl")
 include("LuGreModels.jl")
 include("HyperbolicModels.jl")
 
+Base.length(::FrictionModel) = 1
+Base.size(::FrictionModel) = ()
+Base.getindex(x::FrictionModel, i) = x
+Base.iterate(x::FrictionModel, state = 1) = state > length(x) ? nothing : (x, state = state + 1)
+
 end
