@@ -44,24 +44,3 @@ struct HyperbolicModel <: FrictionModel
     stribeck_velocity::Number
     viscous_damping::Number
 end
-
-"""
-A single Maxwell type element used in Maxwell-Slip models.
-"""
-struct MaxwellElement
-    stiffness::Number
-    damping::Number
-    scale_factor::Number
-end
-
-"""
-The Generalized Maxwell-Slip Model
-"""
-struct GeneralizedMaxwellSlipModel <: HeuristicFrictionModel
-    elements::Array{MaxwellElement}
-    static_coefficient::Number
-    coulomb_coefficient::Number
-    attraction_parameter::Number
-    stribeck_velocity::Number
-    viscous_damping::Number
-end
