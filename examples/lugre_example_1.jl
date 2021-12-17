@@ -17,10 +17,10 @@ position(t) = 0.0
 mdl = LuGreModel(
     0.25,
     0.15,
-    0.01,
+    0.25,
     1.0e6,
     7.5e2,
-    0.0
+    0.05
 )
 
 # Compute the friction model over a segment of time

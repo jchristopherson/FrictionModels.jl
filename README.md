@@ -32,10 +32,10 @@ position(t) = 0.0
 mdl = LuGreModel(
     0.25,
     0.15,
-    0.01,
+    0.25,
     1.0e6,
     7.5e2,
-    0.0
+    0.05
 )
 
 # Compute the friction model over a segment of time
@@ -54,7 +54,7 @@ plot(
 ![](images/lu_gre_example_plot_1.png?raw=true)
 
 ## Model Fitting
-The following example illustrates fitting data stored in a CSV file to a Lu-Gre model.
+The following example illustrates fitting data stored in a CSV file to a Coulomb model.
 ```julia
 using Plots
 using CSV
@@ -75,20 +75,9 @@ println(pwd())
 data = CSV.read("examples//test_data_1.csv", DataFrame)
 
 # Construct an initial estimate for model parameters
-init_guess = LuGreModel(
-    0.25,
-    0.15,
-    0.01,
-    1.0e6,
-    6.0e3,
-    0.0
+init_guess = CoulombModel(
+    0.25
 )
-
-# We can specify limits on each parameter.  If no limit is desired for A
-# specific parameter, we can simply input -Inf or Inf for either a lower or
-# upper constraint respectively.
-lb = [0.2, 0.05, 0.0, 1e3, 0.0, 0.0]
-ub = [1.0, 0.2, Inf, Inf, Inf, 1.0]
 
 # Fit the model
 results = fit_model(
@@ -96,19 +85,15 @@ results = fit_model(
     data[:,1],      # Time
     data[:,4],      # Friction Force
     data[:,3],      # Normal Force
-    data[:,2],      # Velocity
-    [0.0],          # Initial Condition Vector
-    lower = lb,     # Lower Bounds (optional)
-    upper = ub      # Upper Bounds (optional)
+    data[:,2]       # Velocity
 )
 
 # Solve the model
-tspan = [first(data[:,1]), last(data[:,1])]
-rsp = friction(results.model, data[:,1], data[:,3], data[:,2], [0.0])
+F = friction.(results.model, data[:,3], data[:,2])
 
 # Plot the data
 plt = plot(
-    data[:,2], rsp.f,
+    data[:,2], F,
     xlabel = L"v(t)",
     ylabel = L"F(t)",
     label = "Fitted Model",
@@ -132,80 +117,31 @@ confidence = confidence_interval(results.fit)
 
 # Print out the results
 @printf(
-    "static_coefficient: %f\n\tError: %f\n\tConfidence Interval: (%f, %f)\n",
-    results.model.static_coefficient,
+    "coefficient: %f\n\tError: %f\n\tConfidence Interval:: (%f, %f)\n",
+    results.model.coefficient,
     sigma[1],
     confidence[1][1],
     confidence[1][2]
 )
-@printf(
-    "coulomb_coefficient: %f\n\tError: %f\n\tConfidence Interval: (%f, %f)\n",
-    results.model.coulomb_coefficient,
-    sigma[2],
-    confidence[2][1],
-    confidence[2][2]
-)
-@printf(
-    "stribeck_velocity: %f\n\tError: %f\n\tConfidence Interval: (%f, %f)\n",
-    results.model.stribeck_velocity,
-    sigma[3],
-    confidence[3][1],
-    confidence[3][2]
-)
-@printf(
-    "bristle_stiffness: %e\n\tError: %e\n\tConfidence Interval: (%e, %e)\n",
-    results.model.bristle_stiffness,
-    sigma[4],
-    confidence[4][1],
-    confidence[4][2]
-)
-@printf(
-    "bristle_damping: %e\n\tError: %e\n\tConfidence Interval: (%e, %e)\n",
-    results.model.bristle_damping,
-    sigma[5],
-    confidence[5][1],
-    confidence[5][2]
-)
-@printf(
-    "viscous_damping: %f\n\tError: %f\n\tConfidence Interval: (%f, %f)\n",
-    results.model.viscous_damping,
-    sigma[6],
-    confidence[6][1],
-    confidence[6][2]
-)
 ```
 ```text
 Fitted Model Coefficients:
-static_coefficient: 0.200003
-        Error: 0.000182
-        Confidence Interval: (0.199645, 0.200361)
-coulomb_coefficient: 0.132016
-        Error: 0.000127
-        Confidence Interval: (0.131766, 0.132266)
-stribeck_velocity: 0.232961
-        Error: 0.000175
-        Confidence Interval: (0.232615, 0.233307)
-bristle_stiffness: 9.528510e+05
-        Error: 1.747849e+02
-        Confidence Interval: (9.525062e+05, 9.531957e+05)
-bristle_damping: 9.182547e+01
-        Error: 7.017297e+01
-        Confidence Interval: (-4.656995e+01, 2.302209e+02)
-viscous_damping: 1.000000
-        Error: 0.163265
-        Confidence Interval: (0.678009, 1.321991)
+coefficient: 0.147525
+        Error: 0.003425
+        Confidence Interval:: (0.140794, 0.154256)
 ```
-![](images/lu_gre_fit_example_plot_1.png?raw=true)
+![](images/coulomb_fit_example_plot_1.png?raw=true)
 
 For reference, the CSV file looked like this:
 ```csv
 Time,Velocity,Normal,Friction
-0,0,100.0,0.417029813
-0.001,0.047116139,100.0,12.19570558
-0.002,0.094185779,100.0,23.82451708
-0.003,0.14116247,100.0,15.38126635
+0.000000,0.000000,100.000000,0.000000
+0.000206,0.009704,100.000000,0.920472
+0.000404,0.019051,100.000000,3.471664
+0.000639,0.030116,100.000000,7.857625
 ...
-0.2,6.29379E-15,100.0,0.424359046
+0.997929,-0.097501,100.000000,-23.644397
+1.000000,-0.000000,100.000000,-24.660393
 ```
 
 ## References

@@ -1,19 +1,20 @@
 # LuGreModels.jl
 
 # The Lu-Gre state equation (bristle velocity)
-function heuristic_state_equation(
+function heuristic_state_equation!(
     mdl::LuGreModel,
     t::T,
     nrm::T,
     pos::T,
     vel::T,
-    z::Array{T}
+    z::Array{T},
+    dzdt::Array{T}
 ) where T <: Number
     z0 = z[1]
     Fc = mdl.coulomb_coefficient * nrm
     Fs = mdl.static_coefficient * nrm
     g = Fc + (Fs - Fc) * exp(-(vel / mdl.stribeck_velocity)^2)
-    return [vel - mdl.bristle_stiffness * abs(vel) * z0 / g]
+    dzdt[1] = vel - mdl.bristle_stiffness * abs(vel) * z0 / g
 end
 
 # The Lu-Gre friction force equation.
