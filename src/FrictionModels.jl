@@ -9,6 +9,8 @@ export HeuristicFrictionModel
 export CoulombModel
 export LuGreModel
 export HyperbolicModel
+export MaxwellElement
+export GeneralizedMaxwellSlipModel
 export friction
 export fit_model
 
@@ -19,6 +21,7 @@ include("Fitting.jl")
 include("CoulombModels.jl")
 include("LuGreModels.jl")
 include("HyperbolicModels.jl")
+include("GeneralizedMaxwellSlipModels.jl")
 
 Base.length(::FrictionModel) = 1
 Base.size(::FrictionModel) = ()
