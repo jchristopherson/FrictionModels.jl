@@ -2,11 +2,6 @@
 
 function extract_options(args, ndof::Int64 = 1)
     o = Dict{Symbol, Any}(args)
-    if haskey(o, :zi)
-        zi = o[:zi]
-    else
-        zi = 0.0
-    end
     if haskey(o, :reltol)
         reltol = o[:reltol]
     else
@@ -32,8 +27,7 @@ function extract_options(args, ndof::Int64 = 1)
     else
         ub = Inf * ones(ndof)
     end
-    return (
-        zi = zi, 
+    return ( 
         reltol = reltol, 
         abstol = abstol, 
         dtmax = dtmax,
