@@ -151,7 +151,7 @@ Time,Velocity,Normal,Friction
 4. Dupont, P., Armstrong, B., Hayward, V., "Elasto-Plastic Friction Model: Contact Compliance and Stiction."Proceedinge 2000 American Control Conference, 2000.
 5. Blaha, P. (2001). "Coulomb Friction Identification Using Harmonic Balance Method of Two-Relay System." PhD Thesis, BRNO University of Technology.
 6. Rodriguez, E.D., Garcia, B.S., Cortes, F.R., "New Friction Model for Manipulator Robots based on Hyperbolic Functions." 19th National Mechantronics Congress, Queretaro, Mexico, 2020.
-7. Al-Bender, F., Lampaert, V., Swevers, J., "Modeling of Dry Sliding Friction Dynamics: From Heuristic Models to Physically Motivated Models and Back." Americal Institute of Physics, 14(2): 445-460, 2004.
+7. Al-Bender, F., Lampaert, V., Swevers, J., "Modeling of Dry Sliding Friction Dynamics: From Heuristic Models to Physically Motivated Models and Back." American Institute of Physics, 14(2): 445-460, 2004.
 8. Al-Bender, F., Lampaert, V., Swevers, J., "A Novel Generic Model at Asperity Level for Dry Friction Force Dynamics." Tribology Letters, 16: 81-93, 2004.
 9. Lampaert, V., Swevers, J., Al-Bender, F., "Modification of the Leuven Integrated Friction Model Structure." IEEE Transactions on Automatic Control, 47(4): 683-687, 2002.
 10. Al-Bender, F., Lampaert, V., Swevers, J., "The Generalized Maxwell-Slip Model: A Novel Model for Friction Simulation and Compensation." IEEE Transactions on Automatic Control, 50(11):1883-1887, 2005.
