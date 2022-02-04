@@ -32,7 +32,7 @@ function friction(
 ) where T <: Number
 
     # Evaluate the state equation of the heuristic system
-    heuristic_state_equation!(mdl, t, nrm, pos, vel, z, dzdt)
+    dzdt = heuristic_state_equation(mdl, t, nrm, pos, vel, z)
 
     # Evaluate the friction force of the heuristic system
     F = heuristic_force_equation(mdl, t, nrm, pos, vel, z, dzdt)
@@ -77,7 +77,10 @@ function friction(
         x = pos(t_)
         v = vel(t_)
         N = nrm(t_)
-        heuristic_state_equation!(mdl, t_, N, x, v, u_, du_)
+        dzdt = heuristic_state_equation(mdl, t_, N, x, v, u_)
+        for i in 1:length(dzdt)
+            du_[i] = dzdt[i]
+        end
     end
 
     args = extract_options(p)
@@ -114,7 +117,7 @@ function friction(
         x = pos(sol.t[i])
         v = vel(sol.t[i])
         N = nrm(sol.t[i])
-        heuristic_state_equation!(mdl, sol.t[i], N, x, v, z[:,i], dzdt[:,i])
+        dzdt[:,i] = heuristic_state_equation(mdl, sol.t[i], N, x, v, z[:,i])
         F[i] = heuristic_force_equation(mdl, sol.t[i], N, x, v, z[:,i], dzdt[:,i])
     end
 
