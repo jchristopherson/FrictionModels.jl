@@ -44,3 +44,17 @@ struct HyperbolicModel <: FrictionModel
     stribeck_velocity::Number
     viscous_damping::Number
 end
+
+"""
+The elasto-plastic model discussed by Dupont et al.
+"""
+struct ElastoPlasticModel <: HeuristicFrictionModel
+    static_coefficient::Number
+    coulomb_coefficient::Number
+    stribeck_velocity::Number
+    bristle_stiffness::Number
+    bristle_damping::Number
+    breakaway_displacement::Number
+    max_bristle_displacement::Number
+    viscous_damping::Number
+end

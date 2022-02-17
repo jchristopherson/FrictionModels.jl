@@ -9,6 +9,7 @@ export HeuristicFrictionModel
 export CoulombModel
 export LuGreModel
 export HyperbolicModel
+export ElastoPlasticModel
 export friction
 export fit_model
 
@@ -19,6 +20,7 @@ include("Fitting.jl")
 include("CoulombModels.jl")
 include("LuGreModels.jl")
 include("HyperbolicModels.jl")
+include("ElastoPlasticModels.jl")
 
 Base.length(::FrictionModel) = 1
 Base.size(::FrictionModel) = ()
